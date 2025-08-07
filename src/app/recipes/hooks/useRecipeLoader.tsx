@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 interface MealPlan {
   dishName: string;
@@ -12,38 +13,35 @@ interface MealPlan {
 const defaultData = {
   nutritionData: { name: "Generate a Meal Plan!", calories: 0, protein: 0, carbs: 0, fat: 0 },
   cookingStepsData: [{ title: "Your cooking steps will appear here.", description: "" }],
-  // The default ingredientsData is now an empty array
   ingredientsData: [],
   imageUrl: "https://images.unsplash.com/photo-1543353071-873f17a7a088",
   hasPlan: false,
 };
 
 export const useRecipeLoader = () => {
-  const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const mealPlanDataString = searchParams.get('data');
 
-  useEffect(() => {
+  const mealPlan: MealPlan | null = useMemo(() => {
+    if (!mealPlanDataString) return null;
     try {
-      const savedPlan = localStorage.getItem('mealPlan');
-      if (savedPlan) {
-        setMealPlan(JSON.parse(savedPlan));
-      }
+      return JSON.parse(decodeURIComponent(mealPlanDataString));
     } catch (error) {
-      console.error("Failed to parse meal plan from localStorage", error);
+      console.error("Failed to parse meal plan from URL", error);
+      return null;
     }
-    setIsLoading(false);
-  }, []);
+  }, [mealPlanDataString]);
 
   const preparedData = useMemo(() => {
     if (!mealPlan) {
-      return defaultData;
+      return { ...defaultData, isLoading: false };
     }
 
     return {
       nutritionData: {
         name: mealPlan.dishName,
         calories: mealPlan.calories,
-        protein: 0,
+        protein: 0, // Assuming these will be populated if available
         carbs: 0,
         fat: 0,
       },
@@ -51,7 +49,6 @@ export const useRecipeLoader = () => {
         title: `Step ${index + 1}`,
         description: instruction,
       })),
-      // Generate placeholder prices with a value of 0 for each ingredient
       ingredientsData: mealPlan.ingredients.map(ingredient => ({
         name: ingredient,
         quantity: "1 unit",
@@ -63,12 +60,10 @@ export const useRecipeLoader = () => {
       })),
       imageUrl: defaultData.imageUrl,
       hasPlan: true,
+      isLoading: false,
     };
   }, [mealPlan]);
 
-  if (isLoading) {
-    return { ...defaultData, isLoading: true };
-  }
-
-  return { ...preparedData, isLoading: false };
+  // The loading state is now implicitly handled by whether `mealPlan` is available
+  return preparedData;
 };

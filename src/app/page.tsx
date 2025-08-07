@@ -5,8 +5,9 @@ import FormCard from "./components/FormCard";
 import CustomDropdown from './components/CustomDropdown';
 import CuisineSelector from './components/CuisineSelector';
 import { useMealPlanner } from './hooks/useMealPlanner';
+import LoadingOverlay from './components/LoadingOverlay'; // 1. Import the new component
 
-// Options data
+// Options data (remains the same)
 const goalOptions = [
   { value: 'weight-loss', label: 'Lose Weight', icon: '📉' },
   { value: 'muscle-gain', label: 'Build Muscle', icon: '💪' },
@@ -62,6 +63,9 @@ export default function MealPlannerPage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 text-white">
+      {/* 2. Render the LoadingOverlay component */}
+      <LoadingOverlay isLoading={isLoading} />
+      
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-black text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.2)]">
@@ -71,8 +75,10 @@ export default function MealPlannerPage() {
             Personalized nutrition in seconds
           </p>
         </div>
+        
+        {/* 3. Wrap the form in a fieldset and disable it when loading */}
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <fieldset disabled={isLoading} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FormCard 
               icon={"🎯"} title="Your Goal" subtitle="Main objective" accentColor="from-sky-400 to-blue-600"
               className={openDropdown === 'goal' ? 'z-20' : 'z-10'}
@@ -157,7 +163,7 @@ export default function MealPlannerPage() {
                 {isLoading ? 'Generating...' : 'Generate My Meal Plan 🚀'}
               </button>
             </div>
-          </div>
+          </fieldset>
         </form>
         {error && <p className="text-red-300 text-center mt-4">Error: {error}</p>}
       </div>

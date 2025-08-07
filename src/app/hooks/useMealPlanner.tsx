@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { useRouter } from 'next/navigation'; // Import the router
 
 interface FormData {
   goal: string;
@@ -11,6 +12,7 @@ interface FormData {
 }
 
 export const useMealPlanner = () => {
+  const router = useRouter(); // Initialize the router
   const [data, setData] = useState(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,14 +30,18 @@ export const useMealPlanner = () => {
       cookingTime: formData.cookingTime,
     };
 
-    console.log('Sending this data to backend:', requestBody); 
+    console.log('Sending this data to backend:', requestBody);
 
     try {
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/generate`;
       const response = await axios.post(apiUrl, requestBody);
       
-      // On success, save the entire response to localStorage
-      localStorage.setItem('mealPlan', JSON.stringify(response.data));
+      // Instead of saving to localStorage, prepare data for URL
+      const mealPlanData = JSON.stringify(response.data);
+      const encodedData = encodeURIComponent(mealPlanData);
+      
+      // Navigate to the recipes page with the data in the query
+      router.push(`/recipes?data=${encodedData}`);
 
       setData(response.data);
       console.log('Response from backend:', response.data);

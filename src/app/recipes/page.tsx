@@ -1,12 +1,14 @@
 "use client";
 
+import { Suspense } from 'react';
 import ImagePlaceholder from "./components/ImagePlaceholder";
 import NutritionInfo from "./components/NutritionInfo";
 import CookingSteps from "./components/CookingSteps";
 import IngredientsPrices from "./components/IngredientsPrices";
-import { useRecipeLoader } from "./hooks/useRecipeLoader"; // Note the local hooks path
+import { useRecipeLoader } from "./hooks/useRecipeLoader";
 
-export default function RecipePage() {
+// Create a child component that uses the hook
+function RecipeDisplay() {
   const { 
     nutritionData, 
     cookingStepsData, 
@@ -16,7 +18,12 @@ export default function RecipePage() {
   } = useRecipeLoader();
 
   if (isLoading) {
-    return <div className="text-center p-10">Loading meal plan...</div>;
+    return <div className="text-center p-10">Generating your meal plan...</div>;
+  }
+  
+  // If there's no plan, show a default message
+  if (!nutritionData.name || nutritionData.name === "Generate a Meal Plan!") {
+    return <div className="text-center p-10">Go back to the homepage to create a meal plan.</div>;
   }
 
   return (
@@ -35,5 +42,14 @@ export default function RecipePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap the child component in Suspense in the main export
+export default function RecipePage() {
+  return (
+    <Suspense fallback={<div className="text-center p-10">Loading recipe...</div>}>
+      <RecipeDisplay />
+    </Suspense>
   );
 }
